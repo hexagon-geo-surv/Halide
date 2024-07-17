@@ -459,40 +459,18 @@ target_sources(
 # Build serialization, enabled by default
 option(WITH_SERIALIZATION "Include experimental Serialization/Deserialization code" ON)
 if (WITH_SERIALIZATION)
-    # flatbuffers is small and compiles quickly, but if you want/need to use
-    # a local version (via find_package), configure with FLATBUFFERS_USE_FETCHCONTENT=OFF
-    option(FLATBUFFERS_USE_FETCHCONTENT "Enable to download the Flatbuffers library via FetchContent" ON)
-    set(FLATBUFFERS_VER 23.5.26 CACHE STRING "The Flatbuffers version to use (or download) ")
+    # Sadly, there seem to be at least three variations of the Flatbuffer
+    # package in terms of the case of the relevant CMake files. Fortunately,
+    # the IMPORTED targets appear to be consistently named `flatbuffers`.
+    find_package(
+        flatbuffers 23.5.26 REQUIRED
+        NAMES flatbuffers Flatbuffers FlatBuffers
+    )
 
-    if (FLATBUFFERS_USE_FETCHCONTENT)
-        include(FetchContent)
-        FetchContent_Declare(
-            flatbuffers
-            GIT_REPOSITORY https://github.com/google/flatbuffers.git
-            GIT_TAG v${FLATBUFFERS_VER}
-            GIT_SHALLOW TRUE
-            SYSTEM
-        )
-        # configuration for flatbuffers
-        set(FLATBUFFERS_BUILD_TESTS OFF)
-        set(FLATBUFFERS_INSTALL OFF)
-        FetchContent_MakeAvailable(flatbuffers)
-        set_target_properties(flatbuffers PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-        add_library(flatbuffers::flatbuffers ALIAS flatbuffers)
-        add_executable(flatbuffers::flatc ALIAS flatc)
-
-        message(STATUS "Using fetched-and-built flatbuffers, version ${FLATBUFFERS_VER}")
+    get_target_property(vendored_flatbuffers flatbuffers::flatbuffers ALIASED_TARGET)
+    if (vendored_flatbuffers)
         set(flatbuffers_target "$<BUILD_LOCAL_INTERFACE:flatbuffers::flatbuffers>")
     else ()
-        # Sadly, there seem to be at least three variations of the Flatbuffer
-        # package in terms of the case of the relevant CMake files. Fortunately,
-        # the IMPORTED targets appear to be consistently named `flatbuffers`.
-        find_package(
-            flatbuffers ${FLATBUFFERS_VER}
-            NAMES flatbuffers Flatbuffers FlatBuffers
-            REQUIRED
-        )
         set(flatbuffers_target flatbuffers::flatbuffers)
     endif ()
 
