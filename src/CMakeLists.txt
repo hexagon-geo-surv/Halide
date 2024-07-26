@@ -513,6 +513,7 @@ if (WITH_SERIALIZATION)
         flatbuffers 23.5.26 REQUIRED
         NAMES flatbuffers Flatbuffers FlatBuffers
     )
+    _Halide_pkgdep(flatbuffers)
 
     get_target_property(vendored_flatbuffers flatbuffers::flatbuffers ALIASED_TARGET)
     if (vendored_flatbuffers)
@@ -568,10 +569,12 @@ set_property(CACHE Halide_WASM_BACKEND PROPERTY STRINGS "wabt;V8;OFF")
 
 if (Halide_WASM_BACKEND STREQUAL "wabt")
     find_package(wabt 1.0.36 REQUIRED)
+    _Halide_pkgdep(wabt)
     target_link_libraries(Halide PRIVATE wabt::wabt)
     target_compile_definitions(Halide PRIVATE WITH_WABT)
 elseif (Halide_WASM_BACKEND STREQUAL "V8")
     find_package(V8 REQUIRED)
+    _Halide_pkgdep(V8)
     target_link_libraries(Halide PRIVATE V8::V8)
     target_compile_definitions(Halide PRIVATE WITH_V8)
 elseif (Halide_WASM_BACKEND)
