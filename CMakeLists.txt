@@ -43,6 +43,7 @@ include(CheckCXXSymbolExists)
 
 # Make our custom helpers available throughout the project via include().
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+include(BundleStatic)
 include(HalideFeatures)
 include(HalideGeneratorHelpers)
 include(HalidePackageConfigHelpers)
@@ -239,6 +240,8 @@ Halide_feature(
 Halide_feature(Halide_ENABLE_EXCEPTIONS "Enable exceptions in Halide" ON)
 Halide_feature(Halide_ENABLE_RTTI "Enable RTTI in Halide" ON
                DEPENDS LLVM_ENABLE_RTTI)
+Halide_feature(Halide_BUNDLE_STATIC "Bundle Halide's static dependencies" OFF ADVANCED
+               DEPENDS NOT BUILD_SHARED_LIBS)
 
 Halide_feature(WITH_PYTHON_BINDINGS "Halide's native Python module (not the whole pip package)"
                DEPENDS Halide_ENABLE_EXCEPTIONS AND Halide_ENABLE_RTTI)

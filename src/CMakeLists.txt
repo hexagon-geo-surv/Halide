@@ -472,6 +472,10 @@ target_sources(
     FILES "${Halide_BINARY_DIR}/include/Halide.h"
 )
 
+if (Halide_BUNDLE_STATIC)
+    bundle_static(Halide)
+endif ()
+
 ##
 # CodeGen backends
 ##
@@ -480,7 +484,11 @@ target_sources(
 foreach (backend IN LISTS Halide_LLVM_COMPONENTS)
     string(TOUPPER "WITH_${backend}" definition)
     target_compile_definitions(Halide PRIVATE "${definition}")
-    target_link_libraries(Halide PRIVATE Halide_LLVM::${backend})
+    if (Halide_BUNDLE_STATIC AND NOT Halide_LLVM_SHARED_LIBS)
+        target_link_libraries(Halide PRIVATE "$<BUILD_LOCAL_INTERFACE:Halide_LLVM::${backend}>")
+    else ()
+        target_link_libraries(Halide PRIVATE Halide_LLVM::${backend})
+    endif ()
 endforeach ()
 
 # GPU backends
@@ -515,13 +523,6 @@ if (WITH_SERIALIZATION)
     )
     _Halide_pkgdep(flatbuffers)
 
-    get_target_property(vendored_flatbuffers flatbuffers::flatbuffers ALIASED_TARGET)
-    if (vendored_flatbuffers)
-        set(flatbuffers_target "$<BUILD_LOCAL_INTERFACE:flatbuffers::flatbuffers>")
-    else ()
-        set(flatbuffers_target flatbuffers::flatbuffers)
-    endif ()
-
     set(fb_def "${CMAKE_CURRENT_SOURCE_DIR}/halide_ir.fbs")
     set(fb_dir "${Halide_BINARY_DIR}/include/flatc")
     set(fb_header "${fb_dir}/halide_ir.fbs.h")
@@ -541,8 +542,17 @@ if (WITH_SERIALIZATION)
         BASE_DIRS "${fb_dir}"
         FILES "${fb_header}"
     )
-    target_link_libraries(Halide PRIVATE ${flatbuffers_target})
+
     target_compile_definitions(Halide PRIVATE WITH_SERIALIZATION)
+
+    if (Halide_BUNDLE_STATIC)
+        target_link_libraries(Halide PRIVATE "$<BUILD_LOCAL_INTERFACE:flatbuffers::flatbuffers>")
+    elseif (Halide_USE_FETCHCONTENT AND NOT BUILD_SHARED_LIBS)
+        target_sources(Halide PRIVATE "$<TARGET_OBJECTS:flatbuffers::flatbuffers>")
+        target_link_libraries(Halide PRIVATE "$<BUILD_LOCAL_INTERFACE:$<COMPILE_ONLY:flatbuffers::flatbuffers>>")
+    else ()
+        target_link_libraries(Halide PRIVATE flatbuffers::flatbuffers)
+    endif ()
 endif ()
 
 # Enable serialization testing by intercepting JIT compilation with a serialization roundtrip;
@@ -570,13 +580,27 @@ set_property(CACHE Halide_WASM_BACKEND PROPERTY STRINGS "wabt;V8;OFF")
 if (Halide_WASM_BACKEND STREQUAL "wabt")
     find_package(wabt 1.0.36 REQUIRED)
     _Halide_pkgdep(wabt)
-    target_link_libraries(Halide PRIVATE wabt::wabt)
     target_compile_definitions(Halide PRIVATE WITH_WABT)
+
+    if (Halide_BUNDLE_STATIC)
+        target_link_libraries(Halide PRIVATE "$<BUILD_LOCAL_INTERFACE:wabt::wabt>")
+    elseif (Halide_USE_FETCHCONTENT AND NOT BUILD_SHARED_LIBS)
+        target_sources(Halide PRIVATE "$<TARGET_OBJECTS:wabt::wabt>")
+        target_link_libraries(Halide PRIVATE "$<BUILD_LOCAL_INTERFACE:$<COMPILE_ONLY:wabt::wabt>>")
+    else ()
+        target_link_libraries(Halide PRIVATE wabt::wabt)
+    endif ()
 elseif (Halide_WASM_BACKEND STREQUAL "V8")
     find_package(V8 REQUIRED)
     _Halide_pkgdep(V8)
-    target_link_libraries(Halide PRIVATE V8::V8)
     target_compile_definitions(Halide PRIVATE WITH_V8)
+
+    get_property(type TARGET V8::V8 PROPERTY TYPE)
+    if (Halide_BUNDLE_STATIC AND type STREQUAL "STATIC_LIBRARY")
+        target_link_libraries(Halide PRIVATE "$<BUILD_LOCAL_INTERFACE:V8::V8>")
+    else ()
+        target_link_libraries(Halide PRIVATE V8::V8)
+    endif ()
 elseif (Halide_WASM_BACKEND)
     message(FATAL_ERROR "Unknown Halide_WASM_BACKEND `${Halide_WASM_BACKEND}`")
 endif ()
