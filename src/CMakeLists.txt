@@ -6,6 +6,16 @@ add_library(Halide)
 add_library(Halide::Halide ALIAS Halide)
 
 ##
+# CodeGen backends
+
+# LLVM
+foreach (backend IN LISTS Halide_LLVM_COMPONENTS)
+    string(TOUPPER "WITH_${backend}" definition)
+    target_compile_definitions(Halide PRIVATE "${definition}")
+    target_link_libraries(Halide PRIVATE Halide_LLVM::${backend})
+endforeach ()
+
+##
 # Lists of source files. Keep ALL lists sorted in alphabetical order.
 ##
 
@@ -507,8 +517,6 @@ if (WITH_SERIALIZATION_JIT_ROUNDTRIP_TESTING)
     target_compile_definitions(Halide PRIVATE WITH_SERIALIZATION_JIT_ROUNDTRIP_TESTING)
 endif ()
 
-target_link_libraries(Halide PRIVATE Halide::LLVM)
-target_link_libraries(Halide PUBLIC Halide::LanguageOptions)
 target_compile_features(Halide PUBLIC cxx_std_17)
 if (NOT BUILD_SHARED_LIBS)
     target_compile_definitions(Halide PRIVATE Halide_STATIC_DEFINE)
@@ -544,22 +552,20 @@ target_compile_definitions(Halide PUBLIC
 # WasmExecutor backend selection
 ##
 
-if (TARGET_WEBASSEMBLY)
-    set(Halide_WASM_BACKEND "wabt"
-        CACHE STRING "Which backend to use for Halide's WASM testing.")
-    set_property(CACHE Halide_WASM_BACKEND PROPERTY STRINGS "wabt;V8;OFF")
+set(Halide_WASM_BACKEND "wabt"
+    CACHE STRING "Which backend to use for Halide's WASM testing.")
+set_property(CACHE Halide_WASM_BACKEND PROPERTY STRINGS "wabt;V8;OFF")
 
-    if (Halide_WASM_BACKEND STREQUAL "wabt")
-        find_package(wabt 1.0.36 REQUIRED)
-        target_link_libraries(Halide PRIVATE wabt::wabt)
-        target_compile_definitions(Halide PRIVATE WITH_WABT)
-    elseif (Halide_WASM_BACKEND STREQUAL "V8")
-        find_package(V8 REQUIRED)
-        target_link_libraries(Halide PRIVATE V8::V8)
-        target_compile_definitions(Halide PRIVATE WITH_V8)
-    else ()
-        message(FATAL_ERROR "When TARGET_WEBASSEMBLY is enabled, Halide_WASM_BACKEND must be one of: wabt, V8")
-    endif ()
+if (Halide_WASM_BACKEND STREQUAL "wabt")
+    find_package(wabt 1.0.36 REQUIRED)
+    target_link_libraries(Halide PRIVATE wabt::wabt)
+    target_compile_definitions(Halide PRIVATE WITH_WABT)
+elseif (Halide_WASM_BACKEND STREQUAL "V8")
+    find_package(V8 REQUIRED)
+    target_link_libraries(Halide PRIVATE V8::V8)
+    target_compile_definitions(Halide PRIVATE WITH_V8)
+elseif (Halide_WASM_BACKEND)
+    message(FATAL_ERROR "Unknown Halide_WASM_BACKEND `${Halide_WASM_BACKEND}`")
 endif ()
 
 ##
@@ -585,42 +591,54 @@ target_compile_definitions(Halide
 )
 
 ##
-# Set up additional backend options for Halide
-##
+# RTTI and exceptions settings
 
-option(TARGET_OPENCL "Include OpenCL-C target" ON)
-if (TARGET_OPENCL)
-    target_compile_definitions(Halide PRIVATE WITH_OPENCL)
-endif ()
+option(Halide_ENABLE_RTTI "Enable RTTI in Halide" "${LLVM_ENABLE_RTTI}")
+set_property(TARGET Halide PROPERTY CXX_RTTI "${Halide_ENABLE_RTTI}")
+set_property(TARGET Halide APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL CXX_RTTI)
 
-option(TARGET_METAL "Include Metal target" ON)
-if (TARGET_METAL)
-    target_compile_definitions(Halide PRIVATE WITH_METAL)
-endif ()
-
-option(TARGET_D3D12COMPUTE "Include Direct3D 12 Compute target" ON)
-if (TARGET_D3D12COMPUTE)
-    target_compile_definitions(Halide PRIVATE WITH_D3D12)
-endif ()
-
-if (TARGET_VULKAN)
-    message(STATUS "Enabling Vulkan target")
-    target_compile_definitions(Halide PRIVATE WITH_VULKAN)
-endif()
-
-if (TARGET_SPIRV)
-    find_package(
-        SPIRV-Headers 1.5.5 REQUIRED
-        HINTS "${Halide_SOURCE_DIR}/dependencies/spirv"
+if (Halide_ENABLE_RTTI)
+    target_compile_definitions(Halide PUBLIC HALIDE_ENABLE_RTTI)
+else ()
+    target_compile_options(
+        Halide
+        PUBLIC
+        "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/GR->"
+        "$<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-fno-rtti>"
     )
-    target_compile_definitions(Halide PRIVATE WITH_SPIRV)
-    target_link_libraries(Halide PRIVATE "$<BUILD_LOCAL_INTERFACE:SPIRV-Headers::SPIRV-Headers>")
 endif ()
 
-option(TARGET_WEBGPU "Include WebGPU target" ON)
-if (TARGET_WEBGPU)
-    target_compile_definitions(Halide PRIVATE WITH_WEBGPU)
-endif()
+option(Halide_ENABLE_EXCEPTIONS "Enable exceptions in Halide" ON)
+if (Halide_ENABLE_EXCEPTIONS)
+    target_compile_definitions(Halide PUBLIC HALIDE_WITH_EXCEPTIONS)
+else ()
+    target_compile_options(
+        Halide
+        PUBLIC
+        "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/EHs-c->"
+        "$<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-fno-exceptions>"
+    )
+    target_compile_definitions(
+        Halide PUBLIC "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:_HAS_EXCEPTIONS=0>"
+    )
+endif ()
+
+##
+# GPU CodeGen backends
+
+find_package(
+    SPIRV-Headers 1.5.5 REQUIRED
+    HINTS "${Halide_SOURCE_DIR}/dependencies/spirv"
+)
+
+target_link_libraries(Halide PRIVATE "$<BUILD_LOCAL_INTERFACE:SPIRV-Headers::SPIRV-Headers>")
+
+target_compile_definitions(Halide PRIVATE WITH_D3D12)
+target_compile_definitions(Halide PRIVATE WITH_METAL)
+target_compile_definitions(Halide PRIVATE WITH_OPENCL)
+target_compile_definitions(Halide PRIVATE WITH_SPIRV)
+target_compile_definitions(Halide PRIVATE WITH_VULKAN)
+target_compile_definitions(Halide PRIVATE WITH_WEBGPU)
 
 ##
 # Add autoschedulers to the build.

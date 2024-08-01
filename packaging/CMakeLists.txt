@@ -21,7 +21,7 @@ set(Halide_INSTALL_TOOLSDIR "${CMAKE_INSTALL_DATADIR}/tools"
 # Main library exports
 ##
 
-install(TARGETS Halide Halide_Generator Halide_GenGen Halide_LanguageOptions
+install(TARGETS Halide Halide_Generator Halide_GenGen
         EXPORT Halide_Targets
         RUNTIME COMPONENT Halide_Runtime
         LIBRARY COMPONENT Halide_Runtime
@@ -45,7 +45,7 @@ install(TARGETS Halide_Runtime
         FILE_SET HEADERS COMPONENT Halide_Development)
 
 ##
-# Library-type-agnostic interface targets
+# Halide tools
 ##
 
 target_sources(Halide_RunGenMain INTERFACE $<INSTALL_INTERFACE:${Halide_INSTALL_TOOLSDIR}/RunGenMain.cpp>)
@@ -144,15 +144,19 @@ endif ()
 # If Halide explicitly links against shared LLVM or if it is a static library
 # and we are not bundling our static dependencies, then end-users must have
 # the relevant system libraries installed.
-if (Halide_SHARED_LLVM OR (NOT BUILD_SHARED_LIBS AND NOT Halide_BUNDLE_LLVM))
+if (Halide_LLVM_SHARED_LIBS OR (NOT BUILD_SHARED_LIBS AND NOT Halide_BUNDLE_LLVM))
     set(depFile "${CMAKE_CURRENT_BINARY_DIR}/Halide-${type}-deps.cmake")
-    file(WRITE "${depFile}" "find_dependency(LLVM ${LLVM_PACKAGE_VERSION})\n")
+    file(CONFIGURE
+         OUTPUT "${depFile}"
+         CONTENT [[
+set(Halide_LLVM_SHARED_LIBS @Halide_LLVM_SHARED_LIBS@)
+find_dependency(
+    Halide_LLVM @Halide_LLVM_VERSION@
+    COMPONENTS @Halide_LLVM_COMPONENTS@
+)
+]] @ONLY)
 
-    if (TARGET_WEBASSEMBLY)
-        file(APPEND "${depFile}" [[find_dependency(LLD HINTS "${LLVM_DIR}/../lld" "${LLVM_DIR}/../lib/cmake/lld")]])
-    endif ()
-
-    install(FILES "${depFile}"
+    install(FILES "${depFile}" "${Halide_SOURCE_DIR}/cmake/FindHalide_LLVM.cmake"
             DESTINATION ${Halide_INSTALL_CMAKEDIR}
             COMPONENT Halide_Development)
 endif ()
