@@ -1,0 +1,25 @@
+{
+  "name": "wabt",
+  "version": "1.0.35",
+  "description": "The WebAssembly Binary Toolkit",
+  "homepage": "https://github.com/WebAssembly/wabt/",
+  "license": "Apache-2.0",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "features": {
+    "openssl": {
+      "description": "Use OpenSSL rather than vendored PicoSHA2 for SHA-256 support",
+      "dependencies": [
+        "openssl"
+      ]
+    }
+  }
+}
