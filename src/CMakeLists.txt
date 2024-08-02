@@ -566,25 +566,20 @@ target_compile_definitions(Halide PUBLIC
 # WasmExecutor backend selection
 ##
 
-include(CMakeDependentOption)
+set(Halide_WASM_BACKEND "wabt"
+    CACHE STRING "Which backend to use for Halide's WASM testing.")
+set_property(CACHE Halide_WASM_BACKEND PROPERTY STRINGS "wabt;V8;OFF")
 
-cmake_dependent_option(WITH_WABT "Include WABT Interpreter for WASM testing" ON "TARGET_WEBASSEMBLY" OFF)
-cmake_dependent_option(WITH_V8 "Include V8 for WASM testing" OFF "TARGET_WEBASSEMBLY" OFF)
-
-if (WITH_WABT AND WITH_V8)
-    message(FATAL_ERROR "Cannot use both WABT and V8 at the same time, disable one of them.")
-endif ()
-
-if (WITH_WABT)
+if (Halide_WASM_BACKEND STREQUAL "wabt")
     find_package(wabt 1.0.36 REQUIRED)
     target_link_libraries(Halide PRIVATE wabt::wabt)
     target_compile_definitions(Halide PRIVATE WITH_WABT)
-endif ()
-
-if (WITH_V8)
+elseif (Halide_WASM_BACKEND STREQUAL "V8")
     find_package(V8 REQUIRED)
     target_link_libraries(Halide PRIVATE V8::V8)
     target_compile_definitions(Halide PRIVATE WITH_V8)
+else ()
+    message(FATAL_ERROR "When TARGET_WEBASSEMBLY is enabled, Halide_WASM_BACKEND must be one of: wabt, V8")
 endif ()
 
 ##
