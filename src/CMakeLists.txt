@@ -576,13 +576,6 @@ if (WITH_WABT AND WITH_V8)
     message(FATAL_ERROR "Cannot use both WABT and V8 at the same time, disable one of them.")
 endif ()
 
-if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
-    if (WITH_WABT)
-        message(STATUS "WITH_WABT is not yet supported on Windows")
-        set(WITH_WABT OFF CACHE BOOL "WITH_WABT is not yet supported on Windows" FORCE)
-    endif ()
-endif ()
-
 if (WITH_WABT)
     set(WABT_VER 1.0.33)
 
