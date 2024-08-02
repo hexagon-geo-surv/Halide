@@ -604,26 +604,20 @@ if (WITH_WABT)
     # this means we have to prefix with "wabt-src/...", which is less bad than other alternatives,
     # but perhaps we could do better (esp. if wabt was smarter about what it exposed?)
     add_library(Halide_wabt INTERFACE)
-    target_sources(Halide_wabt INTERFACE $<BUILD_INTERFACE:$<TARGET_OBJECTS:wabt>>)
+    target_sources(Halide_wabt INTERFACE $<BUILD_LOCAL_INTERFACE:$<TARGET_OBJECTS:wabt>>)
     target_include_directories(Halide_wabt
                                SYSTEM # Use -isystem instead of -I; this is a trick so that clang-tidy won't analyze these includes
                                INTERFACE
                                $<BUILD_INTERFACE:${wabt_SOURCE_DIR}>/include
                                $<BUILD_INTERFACE:${wabt_BINARY_DIR}>/include)
     set_target_properties(Halide_wabt PROPERTIES EXPORT_NAME wabt)
-endif ()
 
-if (WITH_V8)
-    find_package(V8 REQUIRED)
-    set_target_properties(V8::V8 PROPERTIES IMPORTED_GLOBAL TRUE)
-endif ()
-
-if (TARGET Halide_wabt)
     target_link_libraries(Halide PRIVATE Halide_wabt)
     target_compile_definitions(Halide PRIVATE WITH_WABT)
 endif ()
 
-if (TARGET V8::V8)
+if (WITH_V8)
+    find_package(V8 REQUIRED)
     target_link_libraries(Halide PRIVATE V8::V8)
     target_compile_definitions(Halide PRIVATE WITH_V8)
 endif ()
