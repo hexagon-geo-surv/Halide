@@ -566,20 +566,22 @@ target_compile_definitions(Halide PUBLIC
 # WasmExecutor backend selection
 ##
 
-set(Halide_WASM_BACKEND "wabt"
-    CACHE STRING "Which backend to use for Halide's WASM testing.")
-set_property(CACHE Halide_WASM_BACKEND PROPERTY STRINGS "wabt;V8;OFF")
+if (TARGET_WEBASSEMBLY)
+    set(Halide_WASM_BACKEND "wabt"
+        CACHE STRING "Which backend to use for Halide's WASM testing.")
+    set_property(CACHE Halide_WASM_BACKEND PROPERTY STRINGS "wabt;V8;OFF")
 
-if (Halide_WASM_BACKEND STREQUAL "wabt")
-    find_package(wabt 1.0.36 REQUIRED)
-    target_link_libraries(Halide PRIVATE wabt::wabt)
-    target_compile_definitions(Halide PRIVATE WITH_WABT)
-elseif (Halide_WASM_BACKEND STREQUAL "V8")
-    find_package(V8 REQUIRED)
-    target_link_libraries(Halide PRIVATE V8::V8)
-    target_compile_definitions(Halide PRIVATE WITH_V8)
-else ()
-    message(FATAL_ERROR "When TARGET_WEBASSEMBLY is enabled, Halide_WASM_BACKEND must be one of: wabt, V8")
+    if (Halide_WASM_BACKEND STREQUAL "wabt")
+        find_package(wabt 1.0.36 REQUIRED)
+        target_link_libraries(Halide PRIVATE wabt::wabt)
+        target_compile_definitions(Halide PRIVATE WITH_WABT)
+    elseif (Halide_WASM_BACKEND STREQUAL "V8")
+        find_package(V8 REQUIRED)
+        target_link_libraries(Halide PRIVATE V8::V8)
+        target_compile_definitions(Halide PRIVATE WITH_V8)
+    else ()
+        message(FATAL_ERROR "When TARGET_WEBASSEMBLY is enabled, Halide_WASM_BACKEND must be one of: wabt, V8")
+    endif ()
 endif ()
 
 ##
