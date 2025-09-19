@@ -24,23 +24,25 @@
 
 using namespace Halide;
 
-bool check_file_header(const std::string& filename, const std::vector<uint8_t>& expected_magic) {
+template<typename T, size_t N>
+bool check_file_header(const std::string& filename, const T (&expected)[N]) {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
-        printf("Could not open file: %s\n", filename.c_str());
+        std::cout << "Could not open file: " << filename << "\n";
         return false;
     }
 
-    std::vector<uint8_t> header(expected_magic.size());
-    if (!file.read(reinterpret_cast<char*>(header.data()), expected_magic.size())) {
-        printf("Could not read header from file: %s\n", filename.c_str());
+    T header[N];
+    if (!file.read(reinterpret_cast<char*>(header), sizeof header)) {
+        std::cout << "Could not read header from file: " << filename << "\n";
         return false;
     }
 
-    if (header.size() < expected_magic.size() ||
-        !std::equal(expected_magic.begin(), expected_magic.end(), header.begin())) {
-        printf("Unexpected header bytes in file: %s\n", filename.c_str());
-        return false;
+    for (size_t i = 0; i < N; i++) {
+        if (header[i] != expected[i]) {
+            std::cout << "File " << filename << " has bad data: " << header[i] << " instead of " << expected[i] << "\n";
+            return false;
+        }
     }
 
     return true;
@@ -114,29 +116,26 @@ int main(int argc, char **argv) {
     // their first few bytes.
 
     // 32-arm android object files start with the magic bytes:
-    std::vector<uint8_t> arm_32_android_magic = {0x7f, 'E', 'L', 'F',  // ELF format
-                                                 1,                    // 32-bit
-                                                 1,                    // 2's complement little-endian
-                                                 1};                   // Current version of elf
-
+    uint8_t arm_32_android_magic[] = {0x7f, 'E', 'L', 'F',  // ELF format
+                                      1,                    // 32-bit
+                                      1,                    // 2's complement little-endian
+                                      1};                   // Current version of elf
     if (!check_file_header("lesson_11_arm_32_android.o", arm_32_android_magic)) {
         return -1;
     }
 
     // 64-bit windows object files start with the magic 16-bit value 0x8664
     // (presumably referring to x86-64)
-    std::vector<uint8_t> win_64_magic = {0x64, 0x86};
-
+    uint8_t win_64_magic[] = {0x64, 0x86};
     if (!check_file_header("lesson_11_x86_64_windows.obj", win_64_magic)) {
         return -1;
     }
 
     // 32-bit arm iOS mach-o files start with the following magic bytes:
-    std::vector<uint8_t> arm_32_ios_magic = {0xce, 0xfa, 0xed, 0xfe,  // Mach-o magic bytes
-                                             12, 0, 0, 0,             // CPU type is ARM
-                                             11, 0, 0, 0,             // CPU subtype is ARMv7s
-                                             1, 0, 0, 0};             // It's a relocatable object file
-
+    uint32_t arm_32_ios_magic[] = {0xfeedface,  // Mach-o magic bytes
+                                   12,          // CPU type is ARM
+                                   11,          // CPU subtype is ARMv7s
+                                   1};          // It's a relocatable object file
     if (!check_file_header("lesson_11_arm_32_ios.o", arm_32_ios_magic)) {
         return -1;
     }
