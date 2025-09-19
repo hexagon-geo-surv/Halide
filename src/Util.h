@@ -209,6 +209,11 @@ std::string join_strings(const std::vector<T> &sources, const std::string &delim
     return result;
 }
 
+template<typename... Args>
+std::string concat_strings(Args &&...args) {
+    return (std::stringstream{} << ... << args).str();
+}
+
 /** Perform a left fold of a vector. Returns a default-constructed
  * vector element if the vector is empty. Similar to std::accumulate
  * but with a less clunky syntax. */
