@@ -139,3 +139,5 @@ echo Running clang-tidy...
     -p "${CLANG_TIDY_BUILD_DIR}" \
     -clang-tidy-binary "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang-tidy" \
     -clang-apply-replacements-binary "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang-apply-replacements"
+
+echo "Success!"

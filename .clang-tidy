@@ -114,7 +114,6 @@ Checks: >
     -misc-unconventional-assign-operator,
     -misc-unused-parameters,
     -misc-use-internal-linkage,
-    -modernize-avoid-bind,
     -modernize-avoid-c-arrays,
     -modernize-concat-nested-namespaces,
     -modernize-deprecated-ios-base-aliases,
