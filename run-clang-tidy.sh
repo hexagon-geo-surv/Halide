@@ -134,7 +134,6 @@ echo Running clang-tidy...
 "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/run-clang-tidy" \
     ${FIX} \
     -j "${J}" \
-    -header-filter="${CLANG_TIDY_HEADER_FILTER}" \
     -quiet \
     -p "${CLANG_TIDY_BUILD_DIR}" \
     -clang-tidy-binary "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang-tidy" \

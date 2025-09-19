@@ -2419,7 +2419,7 @@ public:
     template<typename ExprOrVar, typename T2 = T, typename std::enable_if<!std::is_array<T2>::value>::type * = nullptr>
     FuncRef operator()(std::vector<ExprOrVar> args) const {
         this->check_gio_access();
-        return get_values<ValueType>().at(0)(args);
+        return get_values<ValueType>().at(0)(std::move(args));
     }
 
     template<typename T2 = T, typename std::enable_if<!std::is_array<T2>::value>::type * = nullptr>
