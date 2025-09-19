@@ -208,6 +208,7 @@ int main(int argc, char **argv) {
         Buffer<int> halide_result = histogram.realize({256});
 
         // The equivalent C is:
+        // NOLINTBEGIN
         int c_result[256];
         for (int x = 0; x < 256; x++) {
             c_result[x] = 0;
@@ -217,6 +218,7 @@ int main(int argc, char **argv) {
                 c_result[input(r_x, r_y)] += 1;
             }
         }
+        // NOLINTEND
 
         // Check the answers agree:
         for (int x = 0; x < 256; x++) {
@@ -388,6 +390,7 @@ int main(int argc, char **argv) {
         // See figures/lesson_09_compute_at_pure.gif for a visualization.
 
         // The equivalent C is:
+        // NOLINTBEGIN
         int c_result[10];
         // Pure step for the consumer
         for (int x = 0; x < 10; x++) {
@@ -400,6 +403,7 @@ int main(int argc, char **argv) {
         for (int x = 0; x < 10; x++) {
             c_result[x] += 50;
         }
+        // NOLINTEND
 
         // All of the pure step is evaluated before any of the
         // update step, so there are two separate loops over x.

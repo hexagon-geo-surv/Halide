@@ -178,6 +178,7 @@ int main(int argc, char **argv) {
         // visualization of what this did.
 
         // The equivalent C for 'f' is:
+        // NOLINTBEGIN
         int c_result_f[5][5];
         for (int y = 0; y < 5; y++) {
             for (int x = 0; x < 5; x++) {
@@ -192,6 +193,7 @@ int main(int argc, char **argv) {
                 }
             }
         }
+        // NOLINTEND
 
         // And, the equivalent C for 'g' is:
         int c_result_g[5][5];
