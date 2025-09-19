@@ -20,7 +20,7 @@
 #include "Halide.h"
 
 // We'll also include stdio for printf.
-#include <stdio.h>
+#include <cstdio>
 
 int main(int argc, char **argv) {
 

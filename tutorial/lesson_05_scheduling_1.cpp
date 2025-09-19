@@ -20,7 +20,7 @@
 
 #include "Halide.h"
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 using namespace Halide;
 
 int main(int argc, char **argv) {
@@ -377,7 +377,7 @@ int main(int argc, char **argv) {
                     // evaluate points outside of the 7x2 box. We'll
                     // clamp x to be at most 4 (7 minus the split
                     // factor).
-                    if (x > 4) x = 4;
+                    if (x > 4) { x = 4; }
                     x += x_inner;
                     printf("Evaluating at x = %d, y = %d: %d\n", x, y, x + y);
                 }

@@ -16,10 +16,10 @@
 // the pipeline.
 #include "HalideBuffer.h"
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "halide_benchmark.h"
 

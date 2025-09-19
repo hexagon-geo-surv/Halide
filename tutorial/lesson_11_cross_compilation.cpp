@@ -18,8 +18,33 @@
 // source tree.
 
 #include "Halide.h"
-#include <stdio.h>
+#include <cstdio>
+#include <fstream>
+#include <vector>
+
 using namespace Halide;
+
+bool check_file_header(const std::string& filename, const std::vector<uint8_t>& expected_magic) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) {
+        printf("Could not open file: %s\n", filename.c_str());
+        return false;
+    }
+
+    std::vector<uint8_t> header(32);
+    if (!file.read(reinterpret_cast<char*>(header.data()), 32)) {
+        printf("Could not read header from file: %s\n", filename.c_str());
+        return false;
+    }
+
+    if (header.size() < expected_magic.size() ||
+        !std::equal(expected_magic.begin(), expected_magic.end(), header.begin())) {
+        printf("Unexpected header bytes in file: %s\n", filename.c_str());
+        return false;
+    }
+
+    return true;
+}
 
 int main(int argc, char **argv) {
 
@@ -89,54 +114,30 @@ int main(int argc, char **argv) {
     // their first few bytes.
 
     // 32-arm android object files start with the magic bytes:
-    uint8_t arm_32_android_magic[] = {0x7f, 'E', 'L', 'F',  // ELF format
-                                      1,                    // 32-bit
-                                      1,                    // 2's complement little-endian
-                                      1};                   // Current version of elf
+    std::vector<uint8_t> arm_32_android_magic = {0x7f, 'E', 'L', 'F',  // ELF format
+                                                 1,                    // 32-bit
+                                                 1,                    // 2's complement little-endian
+                                                 1};                   // Current version of elf
 
-    FILE *f = fopen("lesson_11_arm_32_android.o", "rb");
-    uint8_t header[32];
-    if (!f || fread(header, 32, 1, f) != 1) {
-        printf("Object file not generated\n");
-        return -1;
-    }
-    fclose(f);
-
-    if (memcmp(header, arm_32_android_magic, sizeof(arm_32_android_magic))) {
-        printf("Unexpected header bytes in 32-bit arm object file.\n");
+    if (!check_file_header("lesson_11_arm_32_android.o", arm_32_android_magic)) {
         return -1;
     }
 
     // 64-bit windows object files start with the magic 16-bit value 0x8664
     // (presumably referring to x86-64)
-    uint8_t win_64_magic[] = {0x64, 0x86};
+    std::vector<uint8_t> win_64_magic = {0x64, 0x86};
 
-    f = fopen("lesson_11_x86_64_windows.obj", "rb");
-    if (!f || fread(header, 32, 1, f) != 1) {
-        printf("Object file not generated\n");
-        return -1;
-    }
-    fclose(f);
-
-    if (memcmp(header, win_64_magic, sizeof(win_64_magic))) {
-        printf("Unexpected header bytes in 64-bit windows object file.\n");
+    if (!check_file_header("lesson_11_x86_64_windows.obj", win_64_magic)) {
         return -1;
     }
 
     // 32-bit arm iOS mach-o files start with the following magic bytes:
-    uint32_t arm_32_ios_magic[] = {0xfeedface,  // Mach-o magic bytes
-                                   12,          // CPU type is ARM
-                                   11,          // CPU subtype is ARMv7s
-                                   1};          // It's a relocatable object file.
-    f = fopen("lesson_11_arm_32_ios.o", "rb");
-    if (!f || fread(header, 32, 1, f) != 1) {
-        printf("Object file not generated\n");
-        return -1;
-    }
-    fclose(f);
+    std::vector<uint8_t> arm_32_ios_magic = {0xfe, 0xed, 0xfa, 0xce,  // Mach-o magic bytes (little-endian)
+                                             12, 0, 0, 0,             // CPU type is ARM
+                                             11, 0, 0, 0,             // CPU subtype is ARMv7s
+                                             1, 0, 0, 0};             // It's a relocatable object file
 
-    if (memcmp(header, arm_32_ios_magic, sizeof(arm_32_ios_magic))) {
-        printf("Unexpected header bytes in 32-bit arm ios object file.\n");
+    if (!check_file_header("lesson_11_arm_32_ios.o", arm_32_ios_magic)) {
         return -1;
     }
 

@@ -18,7 +18,7 @@
 
 #include "Halide.h"
 #include "halide_benchmark.h"
-#include <stdio.h>
+#include <cstdio>
 
 using namespace Halide;
 using namespace Halide::Tools; // for benchmark()

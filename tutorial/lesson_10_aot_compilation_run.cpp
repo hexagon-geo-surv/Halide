@@ -15,7 +15,7 @@
 // doesn't require libHalide.
 #include "HalideBuffer.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 int main(int argc, char **argv) {
     // Have a look in the header file above (it won't exist until you've run

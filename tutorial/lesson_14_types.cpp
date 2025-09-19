@@ -17,7 +17,7 @@
 // source tree.
 
 #include "Halide.h"
-#include <stdio.h>
+#include <cstdio>
 using namespace Halide;
 
 // This function is used to demonstrate generic code at the end of
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
         // 2) If the types are the same, then no type conversions occur.
         for (Type t : valid_halide_types) {
             // Skip the handle type.
-            if (t.is_handle()) continue;
+            if (t.is_handle()) { continue; }
             Expr e = cast(t, x);
             assert((e + e).type() == e.type());
         }

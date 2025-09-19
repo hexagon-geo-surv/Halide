@@ -27,7 +27,7 @@
 
 #include "Halide.h"
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 using namespace Halide;
 
 // Support code for loading pngs.
@@ -77,8 +77,8 @@ int main(int argc, char **argv) {
 
         // The call to serialize_pipeline populates the params map with any input or output parameters
         // that were found ... object's we'll need to attach to buffers if we wish to execute the pipeline
-        for(auto named_param: params) {
-            std::cout << "Found Param: " << named_param.first << std::endl;
+        for(const auto &[name, _param]: params) {
+            std::cout << "Found Param: " << name << "\n";
         } 
     }
 

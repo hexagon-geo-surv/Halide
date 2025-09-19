@@ -17,7 +17,7 @@
 // source tree.
 
 #include "Halide.h"
-#include <stdio.h>
+#include <cstdio>
 
 // This time we'll just import the entire Halide namespace
 using namespace Halide;

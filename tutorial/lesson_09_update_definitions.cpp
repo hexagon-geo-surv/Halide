@@ -15,7 +15,7 @@
 // source tree.
 
 #include "Halide.h"
-#include <stdio.h>
+#include <cstdio>
 
 // We're going to be using x86 SSE intrinsics later on in this lesson.
 #ifdef __SSE2__
