@@ -31,8 +31,8 @@ bool check_file_header(const std::string& filename, const std::vector<uint8_t>& 
         return false;
     }
 
-    std::vector<uint8_t> header(32);
-    if (!file.read(reinterpret_cast<char*>(header.data()), 32)) {
+    std::vector<uint8_t> header(expected_magic.size());
+    if (!file.read(reinterpret_cast<char*>(header.data()), expected_magic.size())) {
         printf("Could not read header from file: %s\n", filename.c_str());
         return false;
     }
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     }
 
     // 32-bit arm iOS mach-o files start with the following magic bytes:
-    std::vector<uint8_t> arm_32_ios_magic = {0xfe, 0xed, 0xfa, 0xce,  // Mach-o magic bytes (little-endian)
+    std::vector<uint8_t> arm_32_ios_magic = {0xce, 0xfa, 0xed, 0xfe,  // Mach-o magic bytes
                                              12, 0, 0, 0,             // CPU type is ARM
                                              11, 0, 0, 0,             // CPU subtype is ARMv7s
                                              1, 0, 0, 0};             // It's a relocatable object file
