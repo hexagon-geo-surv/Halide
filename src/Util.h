@@ -211,7 +211,9 @@ std::string join_strings(const std::vector<T> &sources, const std::string &delim
 
 template<typename... Args>
 std::string concat_strings(Args &&...args) {
-    return (std::stringstream{} << ... << args).str();
+    std::stringstream ss;
+    (ss << ... << args);
+    return ss.str();
 }
 
 /** Perform a left fold of a vector. Returns a default-constructed
