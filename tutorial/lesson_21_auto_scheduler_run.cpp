@@ -21,7 +21,7 @@
 #include <cstring>
 #include <random>
 
-int main(int argc, char **argv) {
+int main() {
     // Let's declare and initialize the input images
     Halide::Runtime::Buffer<float> input(1024, 1024, 3);
 

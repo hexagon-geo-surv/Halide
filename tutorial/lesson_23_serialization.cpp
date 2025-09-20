@@ -33,8 +33,7 @@ using namespace Halide;
 // Support code for loading pngs.
 #include "halide_image_io.h"
 
-int main(int argc, char **argv) {
-
+int main() {
     // First we'll declare some Vars to use below.
     Var x("x"), y("y"), c("c");
 

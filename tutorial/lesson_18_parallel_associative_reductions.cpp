@@ -23,7 +23,7 @@
 
 using namespace Halide;
 
-int main(int argc, char **argv) {
+int main() {
     // Declare some Vars to use below.
     Var x("x"), y("y"), i("i"), u("u"), v("v");
 
@@ -167,7 +167,6 @@ int main(int argc, char **argv) {
         // visualization of what this does.
 
         // The equivalent C is:
-        // NOLINTBEGIN
         int c_intm[8][8];
         for (int y = 0; y < input.height(); y++) {
             for (int x = 0; x < 8; x++) {
@@ -189,7 +188,6 @@ int main(int argc, char **argv) {
                 c_result[x] += c_intm[r_y][x];
             }
         }
-        // NOLINTEND
 
         // Check the answers agree:
         for (int x = 0; x < 8; x++) {
@@ -236,7 +234,6 @@ int main(int argc, char **argv) {
         // visualization of what this does.
 
         // The equivalent C is:
-        // NOLINTBEGIN
         int c_intm[8][8];
         for (int u = 0; u < input.width(); u++) {
             for (int x = 0; x < 8; x++) {
@@ -260,7 +257,6 @@ int main(int argc, char **argv) {
                 c_result[x] += c_intm[r_x][x];
             }
         }
-        // NOLINTEND
 
         // Check the answers agree:
         for (int x = 0; x < 8; x++) {
@@ -309,7 +305,6 @@ int main(int argc, char **argv) {
         // what this does.
 
         // The equivalent C is:
-        // NOLINTBEGIN
         int c_intm[4][4][8];
         for (int v = 0; v < input.height() / 2; v++) {
             for (int u = 0; u < input.width() / 2; u++) {
@@ -339,7 +334,6 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        // NOLINTEND
 
         // Check the answers agree:
         for (int x = 0; x < 8; x++) {

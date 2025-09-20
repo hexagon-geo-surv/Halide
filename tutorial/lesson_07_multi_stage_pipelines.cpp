@@ -24,7 +24,7 @@ using namespace Halide;
 
 using namespace Halide::Tools;
 
-int main(int argc, char **argv) {
+int main() {
     // First we'll declare some Vars to use below.
     Var x("x"), y("y"), c("c");
 

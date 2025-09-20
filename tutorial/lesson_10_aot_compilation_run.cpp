@@ -17,7 +17,7 @@
 
 #include <cstdio>
 
-int main(int argc, char **argv) {
+int main() {
     // Have a look in the header file above (it won't exist until you've run
     // lesson_10_generate). At the bottom is the signature of the function we generated:
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     int offset = 5;
     int error = brighter(input, offset, output);
 
-    if (error) {
+    if (error != 0) {
         printf("Halide returned an error: %d\n", error);
         return -1;
     }

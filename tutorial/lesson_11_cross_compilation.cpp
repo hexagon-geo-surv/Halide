@@ -40,7 +40,9 @@ bool check_file_header(const std::string& filename, const T (&expected)[N]) {
 
     for (size_t i = 0; i < N; i++) {
         if (header[i] != expected[i]) {
-            std::cout << "File " << filename << " has bad data: " << header[i] << " instead of " << expected[i] << "\n";
+            std::cout << "File " << filename << " has bad data: "
+                      << static_cast<int>(header[i]) << " instead of "
+                      << static_cast<int>(expected[i]) << "\n";
             return false;
         }
     }
@@ -48,7 +50,7 @@ bool check_file_header(const std::string& filename, const T (&expected)[N]) {
     return true;
 }
 
-int main(int argc, char **argv) {
+int main() {
 
     // We'll define the simple one-stage pipeline that we used in lesson 10.
     Func brighter;

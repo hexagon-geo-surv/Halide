@@ -35,7 +35,7 @@
 #include <cstdio>
 using namespace Halide;
 
-int main(int argc, char **argv) {
+int main() {
 
     // We'll define a simple one-stage pipeline:
     Func brighter;

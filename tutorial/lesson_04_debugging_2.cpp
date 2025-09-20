@@ -20,7 +20,7 @@
 #include <cstdio>
 using namespace Halide;
 
-int main(int argc, char **argv) {
+int main() {
 
     Var x("x"), y("y");
 

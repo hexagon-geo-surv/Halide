@@ -22,7 +22,7 @@
 // We'll also include stdio for printf.
 #include <cstdio>
 
-int main(int argc, char **argv) {
+int main() {
 
     // This program defines a single-stage imaging pipeline that
     // outputs a grayscale diagonal gradient.

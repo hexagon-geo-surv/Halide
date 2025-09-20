@@ -58,7 +58,7 @@ Pipeline make_pipeline() {
     return Pipeline(output);
 }
 
-int main(int argc, char **argv) {
+int main() {
     // Since we'll be using the same sample and iteration counts for our benchmarking,
     // let's define them here in the outermost scope.
     constexpr int samples = 100;

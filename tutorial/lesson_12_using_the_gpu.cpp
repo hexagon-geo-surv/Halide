@@ -248,7 +248,7 @@ public:
     }
 };
 
-int main(int argc, char **argv) {
+int main() {
     // Load an input image.
     Buffer<uint8_t> input = load_image("images/rgb.png");
 

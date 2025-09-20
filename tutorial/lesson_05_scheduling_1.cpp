@@ -23,7 +23,7 @@
 #include <cstdio>
 using namespace Halide;
 
-int main(int argc, char **argv) {
+int main() {
 
     // We're going to define and schedule our gradient function in
     // several different ways, and see what order pixels are computed
