@@ -136,13 +136,21 @@ jq -s 'add' "${CLANG_TIDY_BUILD_DIR}/compile_commands.json" \
 mv "${CLANG_TIDY_BUILD_DIR}/compile_commands_merged.json" "${CLANG_TIDY_BUILD_DIR}/compile_commands.json"
 
 echo Running clang-tidy...
-"${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/run-clang-tidy" \
+PYTHONUNBUFFERED=1 "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/run-clang-tidy" \
     ${FIX} \
     -j "${J}" \
     -quiet \
     -p "${CLANG_TIDY_BUILD_DIR}" \
     -clang-tidy-binary "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang-tidy" \
     -clang-apply-replacements-binary "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang-apply-replacements" \
-    2>&1 | grep -E -v '^[[:digit:]]\+ warnings\? generated.$'
+    "$@" 2>&1 | sed -Eu '/^[[:digit:]]+ warnings? generated\.$/{N;/\n$/d;}'
 
-echo "Success!"
+CLANG_TIDY_EXIT_CODE=${PIPESTATUS[0]}
+
+if [ "$CLANG_TIDY_EXIT_CODE" -eq 0 ]; then
+    echo "Success!"
+else
+    echo "clang-tidy failed with exit code $CLANG_TIDY_EXIT_CODE"
+fi
+
+exit "$CLANG_TIDY_EXIT_CODE"
