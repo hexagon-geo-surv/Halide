@@ -71,9 +71,14 @@ else
 fi
 
 # Use a temp folder for the CMake stuff here, so it's fresh & correct every time
-CLANG_TIDY_BUILD_DIR=$(mktemp -d)
+if [[ -z "${CLANG_TIDY_BUILD_DIR}" ]]; then
+  CLANG_TIDY_BUILD_DIR=$(mktemp -d)
+  trap 'rm -rf ${CLANG_TIDY_BUILD_DIR}' EXIT
+else
+  mkdir -p "${CLANG_TIDY_BUILD_DIR}"
+fi
+
 echo "CLANG_TIDY_BUILD_DIR = ${CLANG_TIDY_BUILD_DIR}"
-trap "rm -rf ${CLANG_TIDY_BUILD_DIR}" EXIT
 
 export CC="${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang"
 export CXX="${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang++"
@@ -88,7 +93,7 @@ if [[ $(${CC} --version) =~ .*Homebrew.* ]]; then
   # system headers, even though it uses system libc++ by default.
   SDKROOT="$(xcrun --show-sdk-path)"
   # TOOLCHAINROOT="$(xcrun --show-toolchain-path)"
-  TOOLCHAINROOT="$(cd $(dirname $(xcrun --find clang))/../.. && pwd)"
+  TOOLCHAINROOT="$(cd "$(dirname "$(xcrun --find clang)")"/../.. && pwd)"
   cat > "${CLANG_TIDY_BUILD_DIR}/toolchain.cmake" << EOF
 set(CMAKE_SYSROOT "${SDKROOT}")
 set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES
@@ -116,7 +121,7 @@ cmake --build "${CLANG_TIDY_BUILD_DIR}" -j "${J}"
 
 echo Building runtime compilation database...
 temp_file=$(mktemp)
-trap "rm -f $temp_file" EXIT
+trap 'rm -f $temp_file' EXIT
 cat "${CLANG_TIDY_BUILD_DIR}"/src/runtime/*.json > "$temp_file"
 {
   echo '['
@@ -137,6 +142,7 @@ echo Running clang-tidy...
     -quiet \
     -p "${CLANG_TIDY_BUILD_DIR}" \
     -clang-tidy-binary "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang-tidy" \
-    -clang-apply-replacements-binary "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang-apply-replacements"
+    -clang-apply-replacements-binary "${CLANG_TIDY_LLVM_INSTALL_DIR}/bin/clang-apply-replacements" \
+    2>&1 | grep -E -v '^[[:digit:]]\+ warnings\? generated.$'
 
 echo "Success!"

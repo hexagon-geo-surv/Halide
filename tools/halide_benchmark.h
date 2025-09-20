@@ -205,7 +205,7 @@ inline BenchmarkResult benchmark(const std::function<void()> &op, const Benchmar
             // Use an estimate based on initial times to converge faster.
             const double next_iters = std::max(min_time / time_factor,
                                                iters_per_sample * 2.0);
-            iters_per_sample = (uint64_t)(next_iters + 0.5);
+            iters_per_sample = lround(next_iters);
         }
 
         // Ensure we never explode beyond the max.
