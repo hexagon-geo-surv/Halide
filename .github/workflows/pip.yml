@@ -51,82 +51,6 @@ jobs:
       - uses: lukka/get-cmake@v3.28.4
 
       ########################################################################
-      # flatbuffers
-      ########################################################################
-
-      - name: Cache flatbuffers build folder
-        id: cache-flatbuffers
-        uses: actions/cache@v4
-        with:
-          path: opt/flatbuffers
-          key: flatbuffers-${{ env.FLATBUFFERS_VERSION }}-${{ matrix.platform_tag }}
-
-      - uses: actions/checkout@v4
-        if: steps.cache-flatbuffers.outputs.cache-hit != 'true'
-        with:
-          path: flatbuffers-src
-          repository: google/flatbuffers
-          ref: v${{ env.FLATBUFFERS_VERSION }}
-
-      - name: Configure flatbuffers
-        if: steps.cache-flatbuffers.outputs.cache-hit != 'true'
-        run: >
-          cmake -G Ninja -S flatbuffers-src -B flatbuffers-build
-          "-DCMAKE_BUILD_TYPE=Release"
-          "-DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/opt/flatbuffers"
-          "-DFLATBUFFERS_BUILD_TESTS=NO"
-
-      - name: Install flatbuffers
-        if: steps.cache-flatbuffers.outputs.cache-hit != 'true'
-        run: |
-          cmake --build flatbuffers-build --target install
-          cmake -E rm -rf flatbuffers-src flatbuffers-build
-
-      ########################################################################
-      # wabt
-      ########################################################################
-
-      - name: Cache wabt build folder
-        if: matrix.os != 'windows-latest'
-        id: cache-wabt
-        uses: actions/cache@v4
-        with:
-          path: opt/wabt
-          key: wabt-${{ env.WABT_VERSION }}-${{ matrix.platform_tag }}
-
-      - uses: actions/checkout@v4
-        if: >
-          matrix.os != 'windows-latest'
-          && steps.cache-wabt.outputs.cache-hit != 'true'
-        with:
-          submodules: 'true'
-          path: wabt-src
-          repository: WebAssembly/wabt
-          ref: ${{ env.WABT_VERSION }}
-
-      - name: Configure wabt
-        if: >
-          matrix.os != 'windows-latest'
-          && steps.cache-wabt.outputs.cache-hit != 'true'
-        run: >
-          cmake -G Ninja -S wabt-src -B wabt-build
-          "-DCMAKE_BUILD_TYPE=Release"
-          "-DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/opt/wabt"
-          "-DWITH_EXCEPTIONS=ON"
-          "-DBUILD_TESTS=OFF"
-          "-DBUILD_TOOLS=OFF"
-          "-DBUILD_LIBWASM=OFF"
-          "-DUSE_INTERNAL_SHA256=ON"
-
-      - name: Install wabt
-        if: >
-          matrix.os != 'windows-latest'
-          && steps.cache-wabt.outputs.cache-hit != 'true'
-        run: |
-          cmake --build wabt-build --target install
-          cmake -E rm -rf wabt-src wabt-build
-
-      ########################################################################
       # LLVM
       ########################################################################
 
@@ -153,17 +77,64 @@ jobs:
         env:
           CIBW_BUILD: "cp3*-${{ matrix.platform_tag }}"
           CIBW_SKIP: "cp3{5,6,7,8,9}*"
+          CIBW_BEFORE_ALL_LINUX: >
+            /opt/python/cp312-cp312/bin/pip install cmake ninja &&
+            git clone --depth=1 -b v${{ env.FLATBUFFERS_VERSION }}
+            https://github.com/google/flatbuffers /tmp/fb-src &&
+            cmake -G Ninja -S /tmp/fb-src -B /tmp/fb-build
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_INSTALL_PREFIX={project}/opt/flatbuffers
+            -DFLATBUFFERS_BUILD_TESTS=NO &&
+            cmake --build /tmp/fb-build --target install &&
+            git clone --depth=1 --recurse-submodules -b ${{ env.WABT_VERSION }}
+            https://github.com/WebAssembly/wabt /tmp/wabt-src &&
+            cmake -G Ninja -S /tmp/wabt-src -B /tmp/wabt-build
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_INSTALL_PREFIX={project}/opt/wabt
+            -DWITH_EXCEPTIONS=ON
+            -DBUILD_TESTS=OFF
+            -DBUILD_TOOLS=OFF
+            -DBUILD_LIBWASM=OFF
+            -DUSE_INTERNAL_SHA256=ON &&
+            cmake --build /tmp/wabt-build --target install
+          CIBW_BEFORE_ALL_MACOS: >
+            git clone --depth=1 -b v${{ env.FLATBUFFERS_VERSION }}
+            https://github.com/google/flatbuffers /tmp/fb-src &&
+            cmake -G Ninja -S /tmp/fb-src -B /tmp/fb-build
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_INSTALL_PREFIX={project}/opt/flatbuffers
+            -DFLATBUFFERS_BUILD_TESTS=NO &&
+            cmake --build /tmp/fb-build --target install &&
+            git clone --depth=1 --recurse-submodules -b ${{ env.WABT_VERSION }}
+            https://github.com/WebAssembly/wabt /tmp/wabt-src &&
+            cmake -G Ninja -S /tmp/wabt-src -B /tmp/wabt-build
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_INSTALL_PREFIX={project}/opt/wabt
+            -DWITH_EXCEPTIONS=ON
+            -DBUILD_TESTS=OFF
+            -DBUILD_TOOLS=OFF
+            -DBUILD_LIBWASM=OFF
+            -DUSE_INTERNAL_SHA256=ON &&
+            cmake --build /tmp/wabt-build --target install
+          CIBW_BEFORE_ALL_WINDOWS: >
+            git clone --depth=1 -b v${{ env.FLATBUFFERS_VERSION }}
+            https://github.com/google/flatbuffers %TEMP%\fb-src &&
+            cmake -G Ninja -S %TEMP%\fb-src -B %TEMP%\fb-build
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_INSTALL_PREFIX={project}/opt/flatbuffers
+            -DFLATBUFFERS_BUILD_TESTS=NO &&
+            cmake --build %TEMP%\fb-build --target install
           CIBW_ENVIRONMENT_LINUX: >
             Halide_LLVM_ROOT=/project/opt/llvm
             CMAKE_PREFIX_PATH=/project/opt
             SETUPTOOLS_SCM_OVERRIDES_FOR_HALIDE='{local_scheme="no-local-version"}'
           CIBW_ENVIRONMENT_MACOS: >
-            CMAKE_PREFIX_PATH='${{ github.workspace }}/opt'
+            CMAKE_PREFIX_PATH={project}/opt
             Python_ROOT_DIR=''
             SETUPTOOLS_SCM_OVERRIDES_FOR_HALIDE='{local_scheme="no-local-version"}'
           CIBW_ENVIRONMENT_WINDOWS: >
             CMAKE_GENERATOR=Ninja
-            CMAKE_PREFIX_PATH='${{ github.workspace }}\opt'
+            CMAKE_PREFIX_PATH={project}\opt
             SETUPTOOLS_SCM_OVERRIDES_FOR_HALIDE='{local_scheme="no-local-version"}'
           CIBW_TEST_COMMAND: >
             cmake -G Ninja -S {project}/python_bindings/apps -B build -DCMAKE_BUILD_TYPE=Release &&
