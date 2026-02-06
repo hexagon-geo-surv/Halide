@@ -55,16 +55,12 @@ jobs:
       ########################################################################
 
       - name: Install LLVM
+        if: matrix.os != 'ubuntu-latest'
         shell: bash
         run: |
           pip install "halide-llvm==${{ env.LLVM_VERSION }}" \
             --extra-index-url https://pypi.halide-lang.org/simple/
           echo "Halide_LLVM_ROOT=$(halide-llvm --prefix)" >> "$GITHUB_ENV"
-          # On Linux, copy LLVM into workspace so it's visible inside the
-          # cibuildwheel container (mounted at /project).
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            mkdir -p opt && cp -a "$(halide-llvm --prefix)" opt/llvm
-          fi
 
       ########################################################################
       # Wheels
@@ -78,8 +74,11 @@ jobs:
           CIBW_BUILD: "cp3*-${{ matrix.platform_tag }}"
           CIBW_SKIP: "cp3{5,6,7,8,9}*"
           CIBW_BEFORE_ALL_LINUX: >
-            /opt/python/cp312-cp312/bin/pip install cmake ninja &&
+            /opt/python/cp312-cp312/bin/pip install cmake ninja
+            "halide-llvm==${{ env.LLVM_VERSION }}"
+            --extra-index-url https://pypi.halide-lang.org/simple/ &&
             export PATH="/opt/python/cp312-cp312/bin:$PATH" &&
+            ln -s $(halide-llvm --prefix) {project}/opt/llvm &&
             git clone --depth=1 -b v${{ env.FLATBUFFERS_VERSION }}
             https://github.com/google/flatbuffers /tmp/fb-src &&
             cmake -G Ninja -S /tmp/fb-src -B /tmp/fb-build
@@ -130,12 +129,12 @@ jobs:
             CMAKE_PREFIX_PATH=/project/opt
             SETUPTOOLS_SCM_OVERRIDES_FOR_HALIDE='{local_scheme="no-local-version"}'
           CIBW_ENVIRONMENT_MACOS: >
-            CMAKE_PREFIX_PATH={project}/opt
+            CMAKE_PREFIX_PATH='${{ github.workspace }}/opt'
             Python_ROOT_DIR=''
             SETUPTOOLS_SCM_OVERRIDES_FOR_HALIDE='{local_scheme="no-local-version"}'
           CIBW_ENVIRONMENT_WINDOWS: >
             CMAKE_GENERATOR=Ninja
-            CMAKE_PREFIX_PATH={project}\opt
+            CMAKE_PREFIX_PATH='${{ github.workspace }}\opt'
             SETUPTOOLS_SCM_OVERRIDES_FOR_HALIDE='{local_scheme="no-local-version"}'
           CIBW_TEST_COMMAND: >
             cmake -G Ninja -S {project}/python_bindings/apps -B build -DCMAKE_BUILD_TYPE=Release &&
