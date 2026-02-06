@@ -78,6 +78,7 @@ jobs:
             "halide-llvm==${{ env.LLVM_VERSION }}"
             --extra-index-url https://pypi.halide-lang.org/simple/ &&
             export PATH="/opt/python/cp312-cp312/bin:$PATH" &&
+            mkdir -p {project}/opt &&
             ln -s $(halide-llvm --prefix) {project}/opt/llvm &&
             git clone --depth=1 -b v${{ env.FLATBUFFERS_VERSION }}
             https://github.com/google/flatbuffers /tmp/fb-src &&
