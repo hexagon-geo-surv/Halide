@@ -131,12 +131,16 @@ jobs:
       ########################################################################
 
       - name: Install LLVM
-        if: matrix.os != 'ubuntu-latest'
         shell: bash
         run: |
           pip install "halide-llvm==${{ env.LLVM_VERSION }}" \
             --extra-index-url https://pypi.halide-lang.org/simple/
-          echo "Halide_LLVM_ROOT=$(halide-llvm --cmakedir)" >> "$GITHUB_ENV"
+          echo "Halide_LLVM_ROOT=$(halide-llvm --prefix)" >> "$GITHUB_ENV"
+          # On Linux, copy LLVM into workspace so it's visible inside the
+          # cibuildwheel container (mounted at /project).
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            cp -a "$(halide-llvm --prefix)" opt/llvm
+          fi
 
       ########################################################################
       # Wheels
@@ -150,11 +154,8 @@ jobs:
           CIBW_BUILD: "cp3*-${{ matrix.platform_tag }}"
           CIBW_SKIP: "cp3{5,6,7,8,9}*"
           CIBW_ENVIRONMENT_LINUX: >
-            Halide_LLVM_ROOT="$(/opt/python/cp312-cp312/bin/python -m pip install -q
-            "halide-llvm==${{ env.LLVM_VERSION }}"
-            --extra-index-url https://pypi.halide-lang.org/simple/ >&2 &&
-            /opt/python/cp312-cp312/bin/halide-llvm --cmakedir)"
-            CMAKE_PREFIX_PATH='/project/opt'
+            Halide_LLVM_ROOT=/project/opt/llvm
+            CMAKE_PREFIX_PATH=/project/opt
             SETUPTOOLS_SCM_OVERRIDES_FOR_HALIDE='{local_scheme="no-local-version"}'
           CIBW_ENVIRONMENT_MACOS: >
             CMAKE_PREFIX_PATH='${{ github.workspace }}/opt'
