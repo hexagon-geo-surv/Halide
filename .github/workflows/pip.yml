@@ -79,6 +79,7 @@ jobs:
           CIBW_SKIP: "cp3{5,6,7,8,9}*"
           CIBW_BEFORE_ALL_LINUX: >
             /opt/python/cp312-cp312/bin/pip install cmake ninja &&
+            export PATH="/opt/python/cp312-cp312/bin:$PATH" &&
             git clone --depth=1 -b v${{ env.FLATBUFFERS_VERSION }}
             https://github.com/google/flatbuffers /tmp/fb-src &&
             cmake -G Ninja -S /tmp/fb-src -B /tmp/fb-build
