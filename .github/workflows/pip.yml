@@ -91,6 +91,7 @@ jobs:
             https://github.com/WebAssembly/wabt /tmp/wabt-src &&
             cmake -G Ninja -S /tmp/wabt-src -B /tmp/wabt-build
             -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             -DCMAKE_INSTALL_PREFIX={project}/opt/wabt
             -DWITH_EXCEPTIONS=ON
             -DBUILD_TESTS=OFF
