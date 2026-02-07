@@ -5,7 +5,6 @@ on:
     branches: [ main ]
   release:
     types: [ published ]
-  workflow_dispatch:
 
 env:
   # TODO: detect this from repo somehow: https://github.com/halide/Halide/issues/8406
@@ -168,7 +167,7 @@ jobs:
           path: dist
 
       - uses: pypa/gh-action-pypi-publish@release/v1
-        if: github.event_name == 'push' && github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'push' && github.ref_name == 'main'
         with:
           user: upload
           password: ${{ secrets.HALIDE_PYPI_PASSWORD }}
