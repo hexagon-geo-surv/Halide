@@ -267,27 +267,46 @@ FUZZ_TEST(lossless_cast, FuzzingContext &fuzz) {
     buf_u8.fill(fuzz);
     buf_i8.fill(fuzz);
 
-    Expr e1 = random_expr(fuzz);
-    Expr simplified = simplify(e1);
+    // random_expr() can produce deeply-nested expressions, and simplify(),
+    // lower_intrinsics(), and friends visit them recursively. Unlike the
+    // Pipeline lowering/codegen path (which already runs on a large stack
+    // via Internal::run_with_large_stack), these calls would otherwise run
+    // directly on the calling thread's stack, which can be too small on
+    // some CI configurations.
+    Expr e1, e2;
+    ConstantInterval bounds;
+    bool skip = false;
+    bool has_ub = false;
+    run_with_large_stack([&]() {
+        e1 = random_expr(fuzz);
+        Expr simplified = simplify(e1);
 
-    if (might_have_ub(e1) ||
-        might_have_ub(simplified) ||
-        might_have_ub(lower_intrinsics(simplified))) {
+        if (might_have_ub(e1) ||
+            might_have_ub(simplified) ||
+            might_have_ub(lower_intrinsics(simplified))) {
+            skip = true;
+            return;
+        }
+
+        // We're also going to test constant_integer_bounds here.
+        bounds = constant_integer_bounds(e1);
+
+        std::vector<Type> target_types = {UInt(32), Int(32), UInt(16), Int(16)};
+        Type target = fuzz.PickValueInVector(target_types);
+        e2 = lossless_cast(target, e1);
+        if (!e2.defined()) {
+            skip = true;
+            return;
+        }
+
+        has_ub = definitely_has_ub(e2);
+    });
+
+    if (skip) {
         return 0;
     }
 
-    // We're also going to test constant_integer_bounds here.
-    ConstantInterval bounds = constant_integer_bounds(e1);
-
-    std::vector<Type> target_types = {UInt(32), Int(32), UInt(16), Int(16)};
-    Type target = fuzz.PickValueInVector(target_types);
-    Expr e2 = lossless_cast(target, e1);
-
-    if (!e2.defined()) {
-        return 0;
-    }
-
-    if (definitely_has_ub(e2)) {
+    if (has_ub) {
         std::cerr << "lossless_cast introduced ub:\n"
                   << "e1 = " << e1 << "\n"
                   << "e2 = " << e2 << "\n"
