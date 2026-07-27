@@ -55,7 +55,7 @@ bool test_vscale(int vectorization_factor, int vector_bits, int exp_vscale) {
     f.compute_root().vectorize(x, vectorization_factor);
 
     Target t("arm-64-linux-sve2-no_asserts-no_runtime-no_bounds_query");
-    t.vector_bits = vector_bits;
+    t.set_vector_bits(vector_bits);
 
     std::stringstream name;
     name << "test_vscale_v" << vectorization_factor << "_vector_bits_" << vector_bits;

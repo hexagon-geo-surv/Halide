@@ -33,8 +33,8 @@ public:
 
         auto is_runtime_compatible = [](const Target &t1, const Target &t2) -> bool {
             bool yes = true;
-            yes &= (t1.arch == t2.arch && t1.bits == t2.bits && t1.os == t2.os);
-            yes &= (t1.vector_bits == t2.vector_bits);
+            yes &= (t1.arch() == t2.arch() && t1.bits() == t2.bits() && t1.os() == t2.os());
+            yes &= (t1.vector_bits() == t2.vector_bits());
 
             // A bunch of feature flags also need to match between the
             // compiled code and the host in order to run the code.
@@ -102,8 +102,8 @@ private:
                 simd_bit_widths.push_back(64);
                 simd_bit_widths.push_back(128);
             }
-            if (has_sve() && ((target.vector_bits > 128) || !has_neon())) {
-                simd_bit_widths.push_back(target.vector_bits);
+            if (has_sve() && ((target.vector_bits() > 128) || !has_neon())) {
+                simd_bit_widths.push_back(target.vector_bits());
             }
             for (auto &total_bits : simd_bit_widths) {
                 const int vf = total_bits / bits;
@@ -564,7 +564,7 @@ private:
 
             std::vector<int> simd_bit_widths;
             if (has_sve()) {
-                simd_bit_widths.push_back(target.vector_bits);
+                simd_bit_widths.push_back(target.vector_bits());
             } else if (has_neon()) {
                 simd_bit_widths.push_back(64);
                 simd_bit_widths.push_back(128);
@@ -683,7 +683,7 @@ private:
         vector<tuple<Type, CastFuncTy>> test_params = {
             {Int(8), in_i8}, {Int(16), in_i16}, {Int(32), in_i32}, {Int(64), in_i64}, {UInt(8), in_u8}, {UInt(16), in_u16}, {UInt(32), in_u32}, {UInt(64), in_u64}, {Float(16), in_f16}, {Float(32), in_f32}, {Float(64), in_f64}};
 
-        const int base_vec_bits = has_sve() ? target.vector_bits : 128;
+        const int base_vec_bits = has_sve() ? target.vector_bits() : 128;
         const int vscale = base_vec_bits / 128;
 
         for (const auto &[elt, in_im] : test_params) {
@@ -912,7 +912,7 @@ private:
                 {64, in_i64, in_u64, i64, i64, u64, u64},
             };
 
-            const int base_vec_bits = has_sve() ? target.vector_bits : 128;
+            const int base_vec_bits = has_sve() ? target.vector_bits() : 128;
             const int vscale = base_vec_bits / 128;
 
             for (const auto &[bits, in_i, in_u, widen_i, widenx4_i, widen_u, widenx4_u] : test_params) {
@@ -1071,7 +1071,7 @@ private:
         }
 
         string generate_pattern(const Target &target) const {
-            bool is_arm32 = target.bits == 32;
+            bool is_arm32 = target.bits() == 32;
             bool has_sve = target.has_feature(Target::SVE2);
 
             string opcode_pattern;
@@ -1096,7 +1096,7 @@ private:
         }
 
         static int natural_lanes(int bits, const Target &t) {
-            const int base_vector_bits = std::max(t.vector_bits, 128);
+            const int base_vector_bits = std::max(t.vector_bits(), 128);
             return base_vector_bits / bits;
         }
 
@@ -1417,7 +1417,7 @@ private:
     }
 
     inline bool is_arm32() const {
-        return target.bits == 32;
+        return target.bits() == 32;
     };
     inline bool has_neon() const {
         return !target.has_feature(Target::NoNEON);
@@ -1427,7 +1427,7 @@ private:
     };
 
     bool is_float16_supported() const {
-        return (target.bits == 64) && target.features_any_of({Target::ARMFp16, Target::SVE, Target::SVE2});
+        return (target.bits() == 64) && target.features_any_of({Target::ARMFp16, Target::SVE, Target::SVE2});
     }
 
     bool can_run_the_code;
