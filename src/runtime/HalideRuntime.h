@@ -1518,7 +1518,6 @@ typedef enum halide_target_feature_t {
     halide_target_feature_webgpu,                 ///< Enable the WebGPU runtime.
     halide_target_feature_sve,                    ///< Enable ARM Scalable Vector Extensions
     halide_target_feature_sve2,                   ///< Enable ARM Scalable Vector Extensions v2
-    halide_target_feature_egl,                    ///< Force use of EGL support.
     halide_target_feature_arm_dot_prod,           ///< Enable ARMv8.2-a dotprod extension (i.e. udot and sdot instructions)
     halide_target_feature_arm_fp16,               ///< Enable ARMv8.2-a half-precision floating point data processing
     halide_llvm_large_code_model,                 ///< Use the LLVM large code model to compile
