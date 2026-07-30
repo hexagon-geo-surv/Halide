@@ -2,6 +2,7 @@
 
 #include "CSE.h"
 #include "Debug.h"
+#include "Definition.h"
 #include "ExternFuncArgument.h"
 #include "IRMutator.h"
 #include "IROperator.h"
@@ -220,6 +221,11 @@ void inline_function(Function caller, const Function &f) {
             }
         }
     }
+}
+
+void inline_function(Definition &def, const Function &f) {
+    Inliner i(f);
+    def.mutate(&i);
 }
 
 }  // namespace Internal
