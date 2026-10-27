@@ -509,6 +509,7 @@ SOURCE_FILES = \
   Error.cpp \
   Expr.cpp \
   ExtractTileOperations.cpp \
+  ExtractWMMAOperations.cpp \
   FastIntegerDivide.cpp \
   FindCalls.cpp \
   FindIntrinsics.cpp \
@@ -718,6 +719,7 @@ HEADER_FILES = \
   Extern.h \
   ExternFuncArgument.h \
   ExtractTileOperations.h \
+  ExtractWMMAOperations.h \
   FastIntegerDivide.h \
   FindCalls.h \
   FindIntrinsics.h \
